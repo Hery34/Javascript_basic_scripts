@@ -61,3 +61,91 @@ function verifyJwtToken(jwtToken) {
     return data;
 }
 
+// This script will create a session object, set the session id, 
+// check if the session is already logged in, save the session object to localStorage, 
+// create a function to log in the user, create a function to log out the user, 
+// create a function to check if the user is logged in, and create a function to get the user data.
+
+// Create a session object
+const session = {
+    id: "",
+    username: "",
+    email: "",
+    isLoggedIn: false,
+};
+
+// Set the session id
+session.id = localStorage.getItem("sessionId");
+
+// Check if the session is already logged in
+if (session.isLoggedIn) {
+    // Get the user data from the database
+    const user = db.getUserById(session.id);
+
+    // Set the user data on the session object
+    session.username = user.username;
+    session.email = user.email;
+}
+
+// Save the session object to localStorage
+localStorage.setItem("session", JSON.stringify(session));
+
+// Create a function to log in the user
+function login(username, password) {
+    // Check if the username and password are valid
+    if (!username || !password) {
+        return;
+    }
+
+    // Get the user from the database
+    const user = db.getUserByUsername(username);
+
+    // Check if the user exists
+    if (!user) {
+        return;
+    }
+
+    // Check if the password is correct
+    if (bcrypt.compareSync(password, user.password)) {
+        // Set the session id
+        session.id = user.id;
+
+        // Set the user data on the session object
+        session.username = user.username;
+        session.email = user.email;
+
+        // Save the session object to localStorage
+        localStorage.setItem("session", JSON.stringify(session));
+
+        // Set the logged in flag to true
+        session.isLoggedIn = true;
+    }
+}
+
+// Create a function to log out the user
+function logout() {
+    // Set the session id to empty string
+    session.id = "";
+
+    // Set the logged in flag to false
+    session.isLoggedIn = false;
+
+    // Remove the session object from localStorage
+    localStorage.removeItem("session");
+}
+
+// Create a function to check if the user is logged in
+function isLoggedIn() {
+    return session.isLoggedIn;
+}
+
+// Create a function to get the user data
+function getUser() {
+    return session;
+}
+
+// Export the functions
+export { login, logout, isLoggedIn, getUser };
+
+
+
